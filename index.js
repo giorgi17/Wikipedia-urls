@@ -12,6 +12,12 @@ app.use(
 );
 app.use(bodyParser.json());
 
+const makeArrUnique = (originalArr) => {
+  const uniqueSet = new Set(originalArr);
+  const modifiedArr= [...uniqueSet];
+  return modifiedArr; 
+}
+
 const possibleUrls = url => {
   return new Promise(
     (resolve, reject) => {
@@ -48,10 +54,8 @@ const possibleUrls = url => {
                 }            
               }
             }
-
-            const uniqueSet = new Set(allLinksFull);
-            const finalAllLinksFull = [...uniqueSet];
-            resolve(finalAllLinksFull);         
+     
+            resolve(makeArrUnique(allLinksFull)); 
         });
     }
   );
@@ -65,8 +69,7 @@ const calculateUrlsWithClicks = async (url, clicks, urlParserFunc) => {
     for (let k = 0; k < possibleRedirectFromLinks.length; k++) {
       try {
         const urlResults = await urlParserFunc(possibleRedirectFromLinks[k]);
-        const uniqueSet = new Set(urlResults);
-        const finalUrlResults = [...uniqueSet];
+        const finalUrlResults = makeArrUnique(urlResults);
         console.log("NUMBER OF LINKS FROM " + possibleRedirectFromLinks[k] + " - " + finalUrlResults.length);
         possibleRedirectLinks = possibleRedirectLinks.concat(finalUrlResults);
       } catch(e) {
@@ -77,10 +80,7 @@ const calculateUrlsWithClicks = async (url, clicks, urlParserFunc) => {
     possibleRedirectLinks = [];
   }
   
-
-  const uniqueSet = new Set(possibleRedirectFromLinks);
-  const finalPossibleRedirectLinks = [...uniqueSet];
-  return finalPossibleRedirectLinks;
+  return makeArrUnique(possibleRedirectFromLinks);
 }
 
 app.post('/wikipedia', async (req, res) => {
@@ -94,9 +94,8 @@ app.post('/wikipedia', async (req, res) => {
           req.body.clicks, possibleUrls);
         possibleLinksArray = [...possibleLinksArray, ...urlsForSingleLink];
       }
-      const uniqueSet = new Set(possibleLinksArray);
-      const finalPossibleLinksArray = [...uniqueSet];
-      possibleLinksArray = [...finalPossibleLinksArray];
+
+      possibleLinksArray = makeArrUnique(possibleLinksArray);
     }
 
     res.status(400).json(possibleLinksArray);
